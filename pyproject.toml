@@ -15,6 +15,9 @@ uvicorn = "^0.22.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
 manage-fastapi = "^1.1.1"
+pre-commit = "^3.3.3"
+flake8 = "^6.0.0"
+isort = "^5.12.0"
 
 [build-system]
 requires = ["poetry-core"]
