@@ -5,4 +5,4 @@ This project's initial structure was generated via [manage-fastapi](https://ycd.
 
 ## License
 
-This project is licensed under the terms of the None license.
+This project is licensed under the terms of the [MIT](LICENSE) license.
