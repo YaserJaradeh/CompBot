@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "compbot"
+version = "0.1.0"
+description = "Chat with ORKG comparisons"
+authors = ["Yaser Jaradeh <jaradeh@l3s.de>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.98.0"
+orkg = "^0.16.3"
+uvicorn = "^0.22.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+manage-fastapi = "^1.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
