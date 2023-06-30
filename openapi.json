@@ -1,0 +1,28 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "CompBot",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/chat/generate": {
+            "post": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Generate",
+                "operationId": "generate_chat_generate_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

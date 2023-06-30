@@ -11,6 +11,8 @@ python = "^3.10"
 fastapi = "^0.98.0"
 orkg = "^0.16.3"
 uvicorn = "^0.22.0"
+langchain = "^0.0.219"
+python-dotenv = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
