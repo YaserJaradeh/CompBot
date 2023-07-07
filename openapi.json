@@ -5,6 +5,47 @@
         "version": "0.1.0"
     },
     "paths": {
+        "/chat/start": {
+            "get": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Start",
+                "operationId": "start_chat_start_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StartChatRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StartChatResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/chat/generate": {
             "post": {
                 "tags": [
@@ -12,6 +53,16 @@
                 ],
                 "summary": "Generate",
                 "operationId": "generate_chat_generate_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -20,6 +71,167 @@
                                 "schema": {}
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/stream": {
+            "post": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Stream",
+                "operationId": "stream_chat_stream_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChatRequest": {
+                "title": "ChatRequest",
+                "required": [
+                    "comparison_id",
+                    "message"
+                ],
+                "type": "object",
+                "properties": {
+                    "comparison_id": {
+                        "title": "Comparison Id",
+                        "type": "string"
+                    },
+                    "message": {
+                        "title": "Message",
+                        "type": "string"
+                    }
+                }
+            },
+            "HTTPValidationError": {
+                "title": "HTTPValidationError",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "title": "Detail",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            },
+            "StartChatRequest": {
+                "title": "StartChatRequest",
+                "required": [
+                    "comparison_id"
+                ],
+                "type": "object",
+                "properties": {
+                    "comparison_id": {
+                        "title": "Comparison Id",
+                        "type": "string"
+                    }
+                }
+            },
+            "StartChatResponse": {
+                "title": "StartChatResponse",
+                "required": [
+                    "timestamp",
+                    "uuid",
+                    "chat_id",
+                    "model"
+                ],
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "title": "Timestamp",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "uuid": {
+                        "title": "Uuid",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "chat_id": {
+                        "title": "Chat Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "model": {
+                        "title": "Model",
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationError": {
+                "title": "ValidationError",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "type": "object",
+                "properties": {
+                    "loc": {
+                        "title": "Location",
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    },
+                    "msg": {
+                        "title": "Message",
+                        "type": "string"
+                    },
+                    "type": {
+                        "title": "Error Type",
+                        "type": "string"
                     }
                 }
             }

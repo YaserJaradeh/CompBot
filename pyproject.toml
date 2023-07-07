@@ -13,6 +13,8 @@ orkg = "^0.16.3"
 uvicorn = "^0.22.0"
 langchain = "^0.0.219"
 python-dotenv = "^1.0.0"
+cachetools = "^5.3.1"
+tabulate = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
