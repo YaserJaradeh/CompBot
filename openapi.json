@@ -5,47 +5,6 @@
         "version": "0.1.0"
     },
     "paths": {
-        "/chat/start": {
-            "get": {
-                "tags": [
-                    "chat"
-                ],
-                "summary": "Start",
-                "operationId": "start_chat_start_get",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/StartChatRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/StartChatResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/chat/generate": {
             "post": {
                 "tags": [
@@ -127,6 +86,14 @@
     },
     "components": {
         "schemas": {
+            "AgentKind": {
+                "title": "AgentKind",
+                "enum": [
+                    "json",
+                    "dataframe"
+                ],
+                "description": "The type of agent to create."
+            },
             "ChatRequest": {
                 "title": "ChatRequest",
                 "required": [
@@ -142,6 +109,19 @@
                     "message": {
                         "title": "Message",
                         "type": "string"
+                    },
+                    "model": {
+                        "title": "Model",
+                        "type": "string",
+                        "default": "text-davinci-003"
+                    },
+                    "agent": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AgentKind"
+                            }
+                        ],
+                        "default": "dataframe"
                     }
                 }
             },
@@ -155,50 +135,6 @@
                         "items": {
                             "$ref": "#/components/schemas/ValidationError"
                         }
-                    }
-                }
-            },
-            "StartChatRequest": {
-                "title": "StartChatRequest",
-                "required": [
-                    "comparison_id"
-                ],
-                "type": "object",
-                "properties": {
-                    "comparison_id": {
-                        "title": "Comparison Id",
-                        "type": "string"
-                    }
-                }
-            },
-            "StartChatResponse": {
-                "title": "StartChatResponse",
-                "required": [
-                    "timestamp",
-                    "uuid",
-                    "chat_id",
-                    "model"
-                ],
-                "type": "object",
-                "properties": {
-                    "timestamp": {
-                        "title": "Timestamp",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "uuid": {
-                        "title": "Uuid",
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "chat_id": {
-                        "title": "Chat Id",
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "model": {
-                        "title": "Model",
-                        "type": "string"
                     }
                 }
             },

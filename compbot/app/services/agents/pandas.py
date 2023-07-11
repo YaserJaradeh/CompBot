@@ -77,6 +77,8 @@ class CustomPythonAstREPLTool(PythonAstREPLTool):
         try:
             if self.sanitize_input:
                 query = sanitize_input(query)
+            # remove backticks
+            query = query.replace("`", "")
             tree = ast.parse(query)
             module = ast.Module(tree.body[:-1], type_ignores=[])
             exec(ast.unparse(module), self.globals, self.locals)  # type: ignore

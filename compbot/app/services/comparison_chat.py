@@ -1,24 +1,32 @@
 import asyncio
-from datetime import timedelta
 from typing import Any, AsyncIterable, Optional, Tuple
 from uuid import UUID
 
-from cachetools import TTLCache
 from langchain import OpenAI
 from langchain.agents import AgentExecutor, AgentType, create_json_agent
 from langchain.agents.agent_toolkits.json.toolkit import JsonSpec, JsonToolkit
 from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.callbacks.manager import AsyncCallbackManager
+from langchain.chat_models import ChatOpenAI
 from langchain.schema import AgentAction, AgentFinish
 from orkg import ORKG
 
 from compbot.app.core.config import settings
+from compbot.app.models.chat import AgentKind
 from compbot.app.services.agents.pandas import create_custom_pandas_dataframe_agent
+
+CHAT_MODELS = [
+    "gpt-4",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-16k",
+    "gpt-3.5-turbo-0613",
+    "gpt-3.5-turbo-16k-0613",
+    "gpt-4-32k",
+]
 
 
 class ComparisonChatService:
     orkg_client = None
-    agents = TTLCache(maxsize=100, ttl=timedelta(minutes=10).total_seconds())
 
     def __init__(self, host=None):
         if host is None:
@@ -26,19 +34,25 @@ class ComparisonChatService:
         self.orkg_client = ORKG(host, simcomp_host=host + "simcomp")
 
     def initialize_agent(
-        self, comparison_id: str, async_agent: bool = True
+        self,
+        comparison_id: str,
+        model: str,
+        agent_kind: AgentKind,
+        async_agent: bool = True,
     ) -> Tuple[AgentExecutor, "MyCustomHandler"]:
         return self.create_agent(
-            comparison_id=comparison_id, async_agent=async_agent, pandas_agent=True
+            comparison_id=comparison_id,
+            model=model,
+            async_agent=async_agent,
+            agent_kind=agent_kind,
         )
-        if comparison_id not in self.agents:
-            self.agents[comparison_id] = self.create_agent(
-                comparison_id=comparison_id, async_agent=async_agent
-            )
-        return self.agents.get(comparison_id)
 
     def create_agent(
-        self, comparison_id: str, async_agent: bool = True, pandas_agent: bool = True
+        self,
+        comparison_id: str,
+        model: str,
+        agent_kind: AgentKind,
+        async_agent: bool = True,
     ) -> Tuple[AgentExecutor, "MyCustomHandler"]:
         """
         Create an agent that can access and use a large language model (LLM).
@@ -46,25 +60,31 @@ class ComparisonChatService:
         Args:
             comparison_id: The ID of the comparison to use.
             async_agent: Whether to create an asynchronous agent or not.
-            pandas_agent: Whether to create a Pandas DataFrame agent or a CSV agent.
+            model: The name of the LLM to use.
+            agent_kind: The type of agent to create.
 
         Returns:
             An agent that can access and use the LLM.
         """
         stream_handler = MyCustomHandler()
 
+        if model in CHAT_MODELS:
+            llm_model = ChatOpenAI
+        else:
+            llm_model = OpenAI
+
         # Create an OpenAI object.
-        llm = OpenAI(
+        llm = llm_model(
             streaming=True,
             openai_api_key=settings.OPENAI_API_KEY,
-            model_name="text-davinci-003",
-        )  # model_name="gpt-3.5-turbo-16k",
+            model_name=model,
+        )
 
         comparison = self.orkg_client.contributions.compare_dataframe(
             comparison_id=comparison_id
         ).T
 
-        if pandas_agent:
+        if agent_kind == AgentKind.DATAFRAME:
             # Create a Pandas DataFrame agent.
             return (
                 create_custom_pandas_dataframe_agent(
@@ -83,9 +103,12 @@ class ComparisonChatService:
                 stream_handler,
             )
 
-        else:
+        elif agent_kind == AgentKind.JSON:
             # Create a JSON agent.
-            json_spec = JsonSpec(dict_=comparison.to_dict(), max_value_length=4000)
+            json_spec = JsonSpec(
+                dict_=comparison.T.to_dict(),
+                max_value_length=4000 if not isinstance(llm, ChatOpenAI) else 13000,
+            )
             json_toolkit = JsonToolkit(spec=json_spec)
             return (
                 create_json_agent(
@@ -100,22 +123,30 @@ class ComparisonChatService:
                 ),
                 stream_handler,
             )
+        else:
+            raise NotImplementedError(f"Unknown agent kind: {agent_kind}")
 
     async def query_agent_async(
-        self, comparison_id: str, query: str
+        self,
+        comparison_id: str,
+        query: str,
+        model: str = None,
+        agent_kind: AgentKind = AgentKind.DATAFRAME,
     ) -> AsyncIterable[str]:
         """
-        Query an agent and return the response as a string.
+        Query an agent asynchronously and return the response as a string.
 
         Args:
             query: The query to ask the agent.
             comparison_id: The ID of the comparison to use.
+            model: The model to use.
+            agent_kind: The kind of agent to use.
 
         Returns:
-            The response from the agent as a string.
+            JSON responses from the agent, including the thoughts of the agent.
         """
         agent, prompt, stream_handler = self.initialize_components(
-            comparison_id, query, True
+            comparison_id, query, model, agent_kind, True
         )
 
         task = asyncio.create_task(agent.arun(prompt))
@@ -125,8 +156,28 @@ class ComparisonChatService:
 
         await task
 
-    def query_agent(self, comparison_id: str, query: str) -> str:
-        agent, prompt, _ = self.initialize_components(comparison_id, query, False)
+    def query_agent(
+        self,
+        comparison_id: str,
+        query: str,
+        model: str = None,
+        agent_kind: AgentKind = AgentKind.DATAFRAME,
+    ) -> str:
+        """
+        Query an agent and return the response as a string.
+
+        Args:
+            query: The query to ask the agent.
+            comparison_id: The ID of the comparison to use.
+            model: The model to use.
+            agent_kind: The kind of agent to use.
+
+        Returns:
+            The agents final answer as a json string.
+        """
+        agent, prompt, _ = self.initialize_components(
+            comparison_id, query, model, agent_kind, False
+        )
 
         # Run the prompt through the agent.
         response = agent.run(prompt)
@@ -134,9 +185,14 @@ class ComparisonChatService:
         # Convert the response to a string.
         return response.__str__()
 
-    def initialize_components(self, comparison_id, query, async_agent=True):
+    def initialize_components(
+        self, comparison_id, query, model, agent_kind, async_agent=True
+    ) -> Tuple[AgentExecutor, str, "MyCustomHandler"]:
         agent, handler = self.initialize_agent(
-            comparison_id=comparison_id, async_agent=async_agent
+            comparison_id=comparison_id,
+            async_agent=async_agent,
+            model=model,
+            agent_kind=agent_kind,
         )
         prompt = (
             """
@@ -221,7 +277,7 @@ class MyCustomHandler(AsyncCallbackHandler):
     @staticmethod
     def _sanitize_text(text: str) -> str:
         # Remove ===> from the text
-        text = text.replace("===>", "")
+        text = text.replace("===> ", "")
         # Replace dataframe with comparison
         text = text.replace("dataframe", "comparison")
         text = text.replace("DataFrame", "comparison")
@@ -236,7 +292,9 @@ class MyCustomHandler(AsyncCallbackHandler):
             "Sorry! I wasn't able to find an answer.",
         )
         # Replace "I do not know" with "Uh-oh! I don't know the answer to that."
-        text = text.replace("I do not know", "Uh-oh! I don't know the answer to that.")
+        text = text.replace(
+            "Sorry!, I do not know", "Uh-oh! I don't know the answer to that."
+        )
         #################################
         # Replace Action: json_spec_list_keys' with "I should check the properties of the comparison first."
         text = text.replace(

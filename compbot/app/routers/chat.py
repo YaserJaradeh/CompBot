@@ -15,7 +15,10 @@ def generate(
 ):
     service = ComparisonChatService()
     return service.query_agent(
-        comparison_id=request.comparison_id, query=request.message
+        comparison_id=request.comparison_id,
+        query=request.message,
+        model=request.model,
+        agent_kind=request.agent,
     )
 
 
@@ -27,7 +30,10 @@ def stream(
     service = ComparisonChatService()
     return StreamingResponse(
         service.query_agent_async(
-            comparison_id=request.comparison_id, query=request.message
+            comparison_id=request.comparison_id,
+            query=request.message,
+            model=request.model,
+            agent_kind=request.agent,
         ),
         media_type="text/event-stream",
     )
