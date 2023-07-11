@@ -4,8 +4,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from compbot.app.core.config import settings
-from compbot.app.routers import chat
+from app.core.config import settings
+from app.routers import chat
 
 
 def get_application():
@@ -33,7 +33,7 @@ def __configure_routers(app):
 
 def _save_openapi_specification(app):
     app_dir = os.path.dirname(os.path.realpath(__file__))
-    _write_json(app.openapi(), os.path.join(app_dir, "..", "..", "openapi.json"))
+    _write_json(app.openapi(), os.path.join(app_dir, "..", "openapi.json"))
 
 
 def _write_json(data, input_path):

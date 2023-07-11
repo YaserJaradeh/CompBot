@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from compbot.app.core.utils import log
-from compbot.app.models.chat import ChatRequest
-from compbot.app.services.comparison_chat import ComparisonChatService
+from app.core.utils import log
+from app.models.chat import ChatRequest
+from app.services.comparison_chat import ComparisonChatService
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 

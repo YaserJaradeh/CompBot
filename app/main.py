@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from fastapi.responses import HTMLResponse
 
-from compbot.app.app_factory import get_application
+from app.app_factory import get_application
 
 app = get_application()
 
@@ -11,10 +11,10 @@ def root():
     return """
     <html>
         <head>
-            <title> CompBot: A chatbot that understands and talks about ORKG comparisons </title>
+            <title> Grizzly: A chatbot that understands and talks about ORKG comparisons </title>
         </head>
         <body>
-            Welcome to CompBot! The official API for the ORKG comparison chatbot.
+            Welcome to Grizzly! The official API for the ORKG comparison chatbot.
         </body>
     </html>
     """

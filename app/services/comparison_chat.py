@@ -11,9 +11,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.schema import AgentAction, AgentFinish
 from orkg import ORKG
 
-from compbot.app.core.config import settings
-from compbot.app.models.chat import AgentKind
-from compbot.app.services.agents.pandas import create_custom_pandas_dataframe_agent
+from app.core.config import settings
+from app.models.chat import AgentKind
+from app.services.agents.pandas import create_custom_pandas_dataframe_agent
 
 CHAT_MODELS = [
     "gpt-4",

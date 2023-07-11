@@ -15,6 +15,7 @@ langchain = "^0.0.219"
 python-dotenv = "^1.0.0"
 cachetools = "^5.3.1"
 tabulate = "^0.9.0"
+gunicorn = "^20.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict, Optional, Union
 from uuid import UUID
 
-from compbot.app.models.common import Request, Response
+from app.models.common import Request, Response
 
 
 class AgentKind(Enum):
