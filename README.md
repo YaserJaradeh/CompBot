@@ -6,6 +6,35 @@
 
 A chatbot on top of the ORKG comparisons
 
+## How to Run
+You can run Grizzly in two ways. Docker and via Python.
+
+### Docker
+```bash
+docker-compose up
+```
+This will build the image and run the container. The container will be accessible on port 4321 by default.
+
+Check the [docker-compose.yml](docker-compose.yml) file for more details and customizations.
+
+### Python
+You need to create a virtual environment and install the requirements, then enable pre-commit scripts and run the app via uvicorn
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pre-commit install
+uvicorn app.main:app --reload
+```
+
+## Roadmap
+Some of the features that we are planning to add to Grizzly are:
+- [ ] Add a web interface
+- [ ] Add a CLI interface
+- [ ] Support char plotting
+- [ ] Save feedbacks in the database
+- [ ] Support websockets for streaming the results
+
 ## License
 
 This project is licensed under the terms of the [MIT](LICENSE) license.
