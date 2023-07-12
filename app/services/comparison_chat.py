@@ -1,18 +1,16 @@
 import asyncio
-from typing import Any, AsyncIterable, Optional, Tuple
-from uuid import UUID
+from typing import AsyncIterable, Tuple
 
 from langchain import OpenAI
 from langchain.agents import AgentExecutor, AgentType, create_json_agent
 from langchain.agents.agent_toolkits.json.toolkit import JsonSpec, JsonToolkit
-from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.callbacks.manager import AsyncCallbackManager
 from langchain.chat_models import ChatOpenAI
-from langchain.schema import AgentAction, AgentFinish
 from orkg import ORKG
 
 from app.core.config import settings
 from app.models.chat import AgentKind
+from app.services.agents.handlers import AsyncStreamThoughtsAndAnswerHandler
 from app.services.agents.pandas import create_custom_pandas_dataframe_agent
 
 CHAT_MODELS = [
@@ -39,7 +37,7 @@ class ComparisonChatService:
         model: str,
         agent_kind: AgentKind,
         async_agent: bool = True,
-    ) -> Tuple[AgentExecutor, "MyCustomHandler"]:
+    ) -> Tuple[AgentExecutor, AsyncStreamThoughtsAndAnswerHandler]:
         return self.create_agent(
             comparison_id=comparison_id,
             model=model,
@@ -53,7 +51,7 @@ class ComparisonChatService:
         model: str,
         agent_kind: AgentKind,
         async_agent: bool = True,
-    ) -> Tuple[AgentExecutor, "MyCustomHandler"]:
+    ) -> Tuple[AgentExecutor, AsyncStreamThoughtsAndAnswerHandler]:
         """
         Create an agent that can access and use a large language model (LLM).
 
@@ -66,7 +64,7 @@ class ComparisonChatService:
         Returns:
             An agent that can access and use the LLM.
         """
-        stream_handler = MyCustomHandler()
+        stream_handler = AsyncStreamThoughtsAndAnswerHandler()
 
         if model in CHAT_MODELS:
             llm_model = ChatOpenAI
@@ -187,7 +185,7 @@ class ComparisonChatService:
 
     def initialize_components(
         self, comparison_id, query, model, agent_kind, async_agent=True
-    ) -> Tuple[AgentExecutor, str, "MyCustomHandler"]:
+    ) -> Tuple[AgentExecutor, str, AsyncStreamThoughtsAndAnswerHandler]:
         agent, handler = self.initialize_agent(
             comparison_id=comparison_id,
             async_agent=async_agent,
@@ -217,88 +215,3 @@ class ComparisonChatService:
             + query
         )
         return agent, prompt, handler
-
-
-class MyCustomHandler(AsyncCallbackHandler):
-    def __init__(self):
-        self._action_logs = asyncio.Queue()
-        self.done = asyncio.Event()
-
-    # This is an async generator
-    async def action_logs(self):
-        while True:
-            if self.done.is_set():  # check if the done event is set
-                break
-            log = (
-                await self._action_logs.get()
-            )  # this will block until there is something in the queue
-            yield log
-            self._action_logs.task_done()  # notify that the task is done
-
-    async def on_agent_action(
-        self,
-        action: AgentAction,
-        *,
-        run_id: UUID,
-        parent_run_id: Optional[UUID] = None,
-        **kwargs: Any,
-    ) -> None:
-        print(action)
-        self._action_logs.put_nowait(
-            self._sanitize_text(
-                {"thought": self._extract_thought_from_log(action.log)}.__str__() + "\n"
-            )
-        )  # this will unblock the action_logs generator
-
-    async def on_agent_finish(
-        self,
-        finish: AgentFinish,
-        *,
-        run_id: UUID,
-        parent_run_id: Optional[UUID] = None,
-        **kwargs: Any,
-    ) -> None:
-        self._action_logs.put_nowait(
-            self._sanitize_text(
-                {"answer": finish.return_values["output"]}.__str__() + "\n"
-            )
-        )  # this will unblock the action_logs generator
-        self.done.set()  # set the done event
-
-    @staticmethod
-    def _extract_thought_from_log(log: str) -> str:
-        """Extract the thought from the log."""
-        log = log.strip()
-        if len(thoughts := log.split("\n")) > 0 and thoughts[0].startswith("Thought:"):
-            return thoughts[0].replace("Thought:", "").strip()
-        else:
-            return "===> " + thoughts[0]
-
-    @staticmethod
-    def _sanitize_text(text: str) -> str:
-        # Remove ===> from the text
-        text = text.replace("===> ", "")
-        # Replace dataframe with comparison
-        text = text.replace("dataframe", "comparison")
-        text = text.replace("DataFrame", "comparison")
-        # Replace column with property
-        text = text.replace("columns", "properties")
-        text = text.replace("Columns", "properties")
-        text = text.replace("column", "property")
-        text = text.replace("Column", "property")
-        # Replace "Agent stopped due to iteration limit or time limit" with "Sorry! I wasn't able to find an answer."
-        text = text.replace(
-            "Agent stopped due to iteration limit or time limit",
-            "Sorry! I wasn't able to find an answer.",
-        )
-        # Replace "I do not know" with "Uh-oh! I don't know the answer to that."
-        text = text.replace(
-            "Sorry!, I do not know", "Uh-oh! I don't know the answer to that."
-        )
-        #################################
-        # Replace Action: json_spec_list_keys' with "I should check the properties of the comparison first."
-        text = text.replace(
-            "Action: json_spec_list_keys",
-            "I should check the properties of the comparison first.",
-        )
-        return text
