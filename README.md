@@ -30,6 +30,7 @@ uvicorn app.main:app --reload
 ## Roadmap
 Some of the features that we are planning to add to Grizzly are:
 - [ ] Add a web interface
+- [ ] Include additional graph data in the comparison
 - [ ] Add a CLI interface
 - [ ] Support char plotting
 - [ ] Save feedbacks in the database
