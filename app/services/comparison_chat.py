@@ -90,7 +90,7 @@ class ComparisonChatService:
                 create_custom_pandas_dataframe_agent(
                     llm,
                     comparison,
-                    verbose=True,
+                    verbose=settings.VERBOSE,
                     agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                     agent_executor_kwargs={"handle_parsing_errors": True},
                     include_df_in_prompt=True,
@@ -114,7 +114,7 @@ class ComparisonChatService:
                 create_json_agent(
                     llm,
                     json_toolkit,
-                    verbose=True,
+                    verbose=settings.VERBOSE,
                     agent_executor_kwargs={"handle_parsing_errors": True},
                     callback_manager=AsyncCallbackManager([stream_handler])
                     if async_agent
