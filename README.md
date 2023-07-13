@@ -35,6 +35,10 @@ Some of the features that we are planning to add to Grizzly are:
 - [ ] Support chart plotting
 - [ ] Save feedbacks in the database
 - [x] Support websockets for streaming the results
+- [ ] Better error handling
+- [ ] Endpoint to get example questions per comparison
+- [ ] Expose transposing as a parameter
+- [ ] Extraction of entities for highlighting
 
 ## License
 
