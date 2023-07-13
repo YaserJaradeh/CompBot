@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.2",
     "info": {
-        "title": "Grizzly",
+        "title": "CompBot",
         "version": "0.1.0"
     },
     "paths": {

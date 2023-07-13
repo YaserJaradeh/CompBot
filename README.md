@@ -32,9 +32,9 @@ Some of the features that we are planning to add to Grizzly are:
 - [ ] Add a web interface
 - [ ] Include additional graph data in the comparison
 - [ ] Add a CLI interface
-- [ ] Support char plotting
+- [ ] Support chart plotting
 - [ ] Save feedbacks in the database
-- [ ] Support websockets for streaming the results
+- [x] Support websockets for streaming the results
 
 ## License
 
